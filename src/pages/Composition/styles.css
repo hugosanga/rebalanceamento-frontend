@@ -1,0 +1,110 @@
+.page-container .table span {
+    color: #000;
+}
+
+.page-container {
+    width: 100%;
+    height: 100vh;
+    position: relative;
+}
+
+.page-container section {
+    position: relative;
+    top: 80px;
+}
+
+.page-container section .composition-container {
+    width: calc(100% - 200px);
+    padding: 40px 20px;
+    float: right;
+}
+
+.page-container section .composition-container .composition-content {
+    width: 100%;
+}
+
+.dashboard ul li {
+    background: #fff;
+    padding: 20px;
+    box-shadow: 0px 3px 1px -2px rgba(0,0,0,0.2), 0px 2px 2px 0px rgba(0,0,0,0.14), 0px 1px 5px 0px rgba(0,0,0,0.12);
+}
+
+.dashboard .number-information {
+    display: flex;
+    justify-content: center;
+    display: grid;
+    grid-template-columns: 1fr;
+}
+
+.dashboard .number-information h1 {
+    color: #95a5bb;
+    font-weight: 400;
+    display: block;
+}
+
+.dashboard .number-information p {
+    text-align: center;
+    color: #1baa2f;
+    font-weight: 700;
+    font-size: 30px;
+}
+
+.dashboard .p-size-26 p {
+    color: #737df5;
+    font-size: 26px;
+}
+
+@media only screen and (max-width: 768px) {
+
+    .dashboard ul {
+        display: grid;
+        grid-template-columns: 1fr;
+        grid-gap: 15px;
+        list-style: none;
+    }
+
+    .page-container,
+    .page-container section,
+    .page-container ul,
+    .page-container ul li {
+        width: 100%;
+    }
+
+    .dashboard ul li {
+        padding: 15px;
+    }
+
+    .page-container section .composition-container {
+        width: 100%;
+        padding: 20px 5px;
+        float: right;
+    }
+
+}
+
+@media only screen and (min-width: 768px) {
+
+    .page-container {
+        width: 100%;
+    }
+
+    .dashboard ul {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr 1fr;
+        grid-gap: 20px;
+        list-style: none;
+    }
+
+    .dashboard .colspan-2 {
+        grid-column: auto / span 2;
+    }
+
+    .dashboard .colspan-4 {
+        grid-column: auto / span 4;
+    }
+
+    .dashboard .rowspan-3 {
+        grid-row: auto / span 3;
+    }
+
+}
