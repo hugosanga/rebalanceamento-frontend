@@ -57,7 +57,7 @@ export default function Register() {
         try {
             const check = await api.get(`/profile/${email}`)
 
-            if(check.data) {
+            if(check.data.id) {
                 alert(`Este email já está cadastrado.`)
                 return false
             }
