@@ -174,19 +174,19 @@ function EditableTable() {
             return new Promise((resolve) => {
                 setTimeout(() => {
                     resolve();
-                    setState((prevState) => {
-                        let data = [...prevState.data];
-                        // data.push(newData);
-                        //
-                        // data = stocksDetails(data)
-                        // localStorage.setItem('stocks', JSON.stringify(data))
-                        // localStorage.setItem('updated_at', Date.now())
-
-                        return {
-                            ...prevState,
-                            data
-                        }
-                    })
+                    // setState((prevState) => {
+                    //     let data = [...prevState.data];
+                    //     // data.push(newData);
+                    //     //
+                    //     // data = stocksDetails(data)
+                    //     // localStorage.setItem('stocks', JSON.stringify(data))
+                    //     // localStorage.setItem('updated_at', Date.now())
+                    //
+                    //     return {
+                    //         ...prevState,
+                    //         data
+                    //     }
+                    // })
                 }, 600)
             })
 
