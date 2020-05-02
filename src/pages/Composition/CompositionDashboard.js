@@ -45,14 +45,16 @@ export default function CompositionDashboard() {
         let tempTotal = 0
         let tempTotalGrade = 0
 
-        for (let i in data) {
-            data[i].price = await parseFloat(data[i].price)
-            data[i].total = data[i].price * data[i].amount
+        while (isNaN(data[0].total)) {
+            for (let i in data) {
+                data[i].price = parseFloat(data[i].price)
+                data[i].total = data[i].price * data[i].amount
 
-            data[i].grade = await parseInt(data[i].grade)
+                data[i].grade = parseInt(data[i].grade)
 
-            tempTotal += data[i].total
-            tempTotalGrade += data[i].grade
+                tempTotal += data[i].total
+                tempTotalGrade += data[i].grade
+            }
         }
 
         for(let i in data) {

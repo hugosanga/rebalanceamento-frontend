@@ -1,13 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useHistory } from 'react-router-dom'
 import MaterialTable from 'material-table';
 
 import api from '../../services/api'
 
 function EditableTable() {
     const user_id = localStorage.getItem('user_id')
-
-    const history = useHistory()
 
     const [newInvestment, setNewInvestment] = useState('')
 
@@ -82,17 +79,17 @@ function EditableTable() {
         let tempTotal = 0
         let tempTotalGrade = 0
 
+        while (isNaN(data[0].total)) {
+            for (let i in data) {
+                data[i].price = parseFloat(data[i].price)
+                data[i].total = data[i].price * data[i].amount
 
-        for (let i in data) {
-            data[i].price = parseFloat(data[i].price)
-            data[i].total = data[i].price * data[i].amount
+                data[i].grade = parseInt(data[i].grade)
 
-            data[i].grade = parseInt(data[i].grade)
-
-            tempTotal += data[i].total
-            tempTotalGrade += data[i].grade
+                tempTotal += data[i].total
+                tempTotalGrade += data[i].grade
+            }
         }
-
 
         for(let i in data) {
             data[i].actualPercent = `${(data[i].total / tempTotal * 100).toFixed(2)} %`.replace('.', ',')
@@ -102,19 +99,19 @@ function EditableTable() {
         return data
     }
 
+    async function getData() {
+        let data = await api.get('/ticker', { headers: { Authorization: user_id }})
+        .then(response => response.data)
+
+        data = await stocksDetails(data)
+
+        localStorage.setItem('stocks', JSON.stringify(data))
+        localStorage.setItem('updated_at', Date.now())
+
+        setState({ columns: state.columns, data })
+    }
+
     useEffect(() => {
-
-        async function getData() {
-            let data = await api.get('/ticker', { headers: { Authorization: user_id }})
-                .then(response => response.data)
-
-            data = await stocksDetails(data)
-
-            localStorage.setItem('stocks', JSON.stringify(data))
-            localStorage.setItem('updated_at', Date.now())
-
-            setState({ columns: state.columns, data })
-        }
 
         if(!localStorage.getItem('stocks') || (Date.now() - localStorage.getItem('updated_at')) > 1000*60*5) {
             getData()
@@ -133,7 +130,7 @@ function EditableTable() {
             clearInterval(interval)
         }
 
-    }, [user_id, state.columns, history])
+    }, [user_id, state.columns])
 
     async function handleNewData(newData) {
         newData.ticker = newData.ticker.toUpperCase()
@@ -166,10 +163,12 @@ function EditableTable() {
                 return false
             }
 
-            newData.id = await response.data.id
-            newData.type = await response.data.type
-            newData.sector = await response.data.sector
-            newData.price = await response.data.price
+            getData()
+            //
+            // newData.id = await response.data.id
+            // newData.type = await response.data.type
+            // newData.sector = await response.data.sector
+            // newData.price = await response.data.price
 
             return new Promise((resolve) => {
                 setTimeout(() => {
