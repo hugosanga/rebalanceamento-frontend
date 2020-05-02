@@ -79,7 +79,8 @@ function EditableTable() {
         let tempTotal = 0
         let tempTotalGrade = 0
 
-        while (isNaN(data[0].total)) {
+        data[0].actualPercent = 'NaN'
+        while (data[0].actualPercent.includes('NaN')) {
             for (let i in data) {
                 data[i].price = parseFloat(data[i].price)
                 data[i].total = data[i].price * data[i].amount
@@ -89,11 +90,11 @@ function EditableTable() {
                 tempTotal += data[i].total
                 tempTotalGrade += data[i].grade
             }
-        }
 
-        for(let i in data) {
-            data[i].actualPercent = `${(data[i].total / tempTotal * 100).toFixed(2)} %`.replace('.', ',')
-            data[i].idealPercent = `${(data[i].grade / tempTotalGrade * 100).toFixed(2)} %`.replace('.', ',')
+            for(let i in data) {
+                data[i].actualPercent = `${(data[i].total / tempTotal * 100).toFixed(2)} %`.replace('.', ',')
+                data[i].idealPercent = `${(data[i].grade / tempTotalGrade * 100).toFixed(2)} %`.replace('.', ',')
+            }
         }
 
         return data
@@ -175,11 +176,11 @@ function EditableTable() {
                     resolve();
                     setState((prevState) => {
                         let data = [...prevState.data];
-                        data.push(newData);
-
-                        data = stocksDetails(data)
-                        localStorage.setItem('stocks', JSON.stringify(data))
-                        localStorage.setItem('updated_at', Date.now())
+                        // data.push(newData);
+                        //
+                        // data = stocksDetails(data)
+                        // localStorage.setItem('stocks', JSON.stringify(data))
+                        // localStorage.setItem('updated_at', Date.now())
 
                         return {
                             ...prevState,
