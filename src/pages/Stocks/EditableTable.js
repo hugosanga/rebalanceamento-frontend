@@ -132,7 +132,7 @@ function EditableTable() {
         return() => {
             clearInterval(interval)
         }
-        
+
     }, [user_id, state.columns, history])
 
     async function handleNewData(newData) {
@@ -149,8 +149,8 @@ function EditableTable() {
 
         const data = {
             ticker: newData.ticker,
-            grade: parseInt(newData.grade),
-            amount: parseInt(newData.amount)
+            grade: await parseInt(newData.grade),
+            amount: await parseInt(newData.amount)
         }
 
         if (isNaN(data.grade) || isNaN(data.amount)) {
@@ -166,10 +166,10 @@ function EditableTable() {
                 return false
             }
 
-            newData.id = response.data.id
-            newData.type = response.data.type
-            newData.sector = response.data.sector
-            newData.price = response.data.price
+            newData.id = await response.data.id
+            newData.type = await response.data.type
+            newData.sector = await response.data.sector
+            newData.price = await response.data.price
 
             return new Promise((resolve) => {
                 setTimeout(() => {
