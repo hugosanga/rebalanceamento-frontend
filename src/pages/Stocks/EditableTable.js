@@ -76,11 +76,11 @@ function EditableTable() {
     }
 
     function stocksDetails(data) {
-        let tempTotal = 0
-        let tempTotalGrade = 0
-
         data[0].actualPercent = 'NaN'
         while (data[0].actualPercent.includes('NaN')) {
+            let tempTotal = 0
+            let tempTotalGrade = 0
+            
             for (let i in data) {
                 data[i].price = parseFloat(data[i].price)
                 data[i].total = data[i].price * data[i].amount
