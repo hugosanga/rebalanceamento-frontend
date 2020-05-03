@@ -76,26 +76,25 @@ function EditableTable() {
     }
 
     function stocksDetails(data) {
-        data[0].actualPercent = 'NaN'
-        while (data[0].actualPercent.includes('NaN')) {
-            let tempTotal = 0
-            let tempTotalGrade = 0
-            
-            for (let i in data) {
-                data[i].price = parseFloat(data[i].price)
-                data[i].total = data[i].price * data[i].amount
 
-                data[i].grade = parseInt(data[i].grade)
+        let tempTotal = 0
+        let tempTotalGrade = 0
+        
+        for (let i in data) {
+            data[i].price = parseFloat(data[i].price)
+            data[i].total = data[i].price * data[i].amount
 
-                tempTotal += data[i].total
-                tempTotalGrade += data[i].grade
-            }
+            data[i].grade = parseInt(data[i].grade)
 
-            for(let i in data) {
-                data[i].actualPercent = `${(data[i].total / tempTotal * 100).toFixed(2)} %`.replace('.', ',')
-                data[i].idealPercent = `${(data[i].grade / tempTotalGrade * 100).toFixed(2)} %`.replace('.', ',')
-            }
+            tempTotal += data[i].total
+            tempTotalGrade += data[i].grade
         }
+
+        for(let i in data) {
+            data[i].actualPercent = `${(data[i].total / tempTotal * 100).toFixed(2)} %`.replace('.', ',')
+            data[i].idealPercent = `${(data[i].grade / tempTotalGrade * 100).toFixed(2)} %`.replace('.', ',')
+        }
+
 
         return data
     }

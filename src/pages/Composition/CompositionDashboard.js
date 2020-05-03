@@ -4,26 +4,7 @@ import { Pie, HorizontalBar } from 'react-chartjs-2';
 import MediaQuery from 'react-responsive';
 
 import api from '../../services/api'
-
-const backgroundColor = [
-    '#ff0000',
-    '#ff7300',
-    '#ffaf00',
-    '#ffec00',
-    '#d5f30b',
-    '#52d726',
-    '#1baa2f',
-    '#2dcb75',
-    '#26d7ae',
-    '#7cdddd',
-    '#5fb7d4',
-    '#8399eb',
-    '#8e6cef',
-    '#007ed6',
-    '#9c46d0',
-    '#c758d0',
-    '#e01e84'
-]
+import { backgroundBarColor, backgroundPieColor } from '../../services/chartsColor'
 
 export default function CompositionDashboard() {
     const user_id = localStorage.getItem('user_id')
@@ -41,32 +22,36 @@ export default function CompositionDashboard() {
     const [stocksPercents, setStocksPercents] = useState([])
     const [stocksLabels, setStocksLabels] = useState([])
 
+    const [FIISubSectorLabels, setFIISubSectorLabels] = useState([])
+    const [FIISubSectorPercents, setFIISubSectorPercents] = useState([])
+
+    const [ETFSubSectorLabels, setETFSubSectorLabels] = useState([])
+    const [ETFSubSectorPercents, setETFSubSectorPercents] = useState([])
+
     async function stocksDetails(data) {
-        data[0].actualPercent = 'NaN'
-        while (data[0].actualPercent.includes('NaN')) {
-            let tempTotal = 0
-            let tempTotalGrade = 0
 
-            for (let i in data) {
-                data[i].price = parseFloat(data[i].price)
-                data[i].total = data[i].price * data[i].amount
+        let tempTotal = 0
+        let tempTotalGrade = 0
 
-                data[i].grade = parseInt(data[i].grade)
+        for (let i in data) {
+            data[i].price = parseFloat(data[i].price)
+            data[i].total = data[i].price * data[i].amount
 
-                tempTotal += data[i].total
-                tempTotalGrade += data[i].grade
-            }
+            data[i].grade = parseInt(data[i].grade)
 
-            for(let i in data) {
-                data[i].actualPercent = `${(data[i].total / tempTotal * 100).toFixed(2)} %`.replace('.', ',')
-                data[i].idealPercent = `${(data[i].grade / tempTotalGrade * 100).toFixed(2)} %`.replace('.', ',')
-            }
+            tempTotal += data[i].total
+            tempTotalGrade += data[i].grade
+        }
+
+        for(let i in data) {
+            data[i].actualPercent = `${(data[i].total / tempTotal * 100).toFixed(2)} %`.replace('.', ',')
+            data[i].idealPercent = `${(data[i].grade / tempTotalGrade * 100).toFixed(2)} %`.replace('.', ',')
         }
 
         return data
     }
 
-    function calculatePercentMissing(data) {
+    function calculatePercentDiscrepance(data) {
         const missingPercent = {}
 
         for (let i in data) {
@@ -116,7 +101,7 @@ export default function CompositionDashboard() {
         )
     }
 
-    function calculateTotal(data) {
+    function calculateTotalInvested(data) {
         let tempTotal = 0
         let tempTotalStocks = 0
         let tempTotalETF = 0
@@ -140,6 +125,80 @@ export default function CompositionDashboard() {
         setTotalFII(tempTotalFII)
     }
 
+    function calculatePercentFII(data) {
+        const totalPercentFII = {}
+
+        let totalFII = 0
+
+        for(let i in data) {
+            if(data[i].type === 'FII') {
+                totalFII += data[i].total
+            }
+        }
+
+        for (let i in data) {
+            if(data[i].type === 'FII') {
+                if(!totalPercentFII[data[i].subSector]) {
+                    totalPercentFII[data[i].subSector] = data[i].total / totalFII * 100
+                } else {
+                    totalPercentFII[data[i].subSector] += data[i].total / totalFII * 100
+                }
+            }
+        }
+
+        setFIISubSectorLabels(
+            Object.keys(totalPercentFII)
+            .sort(function(a, b) {
+                return totalPercentFII[a] > totalPercentFII[b] ?
+                    -1 :
+                    ( totalPercentFII[a] < totalPercentFII[b] ? 1 : 0)
+            }).map(label => label.length > 20 ? label.slice(0, 20) + '...' : label)
+        )
+        setFIISubSectorPercents(
+            Object.values(totalPercentFII)
+            .sort(function(a, b) {
+                return a > b ? -1 : ( a < b ? 1 : 0)
+            })
+        )
+    }
+
+    function calculatePercentETF(data) {
+        const totalPercentETF = {}
+
+        let totalETF = 0
+
+        for(let i in data) {
+            if(data[i].type === 'ETF') {
+                totalETF += data[i].total
+            }
+        }
+
+        for (let i in data) {
+            if(data[i].type === 'ETF') {
+                if(!totalPercentETF[data[i].subSector]) {
+                    totalPercentETF[data[i].subSector] = data[i].total / totalETF * 100
+                } else {
+                    totalPercentETF[data[i].subSector] += data[i].total / totalETF * 100
+                }
+            }
+        }
+
+        setETFSubSectorLabels(
+            Object.keys(totalPercentETF)
+            .sort(function(a, b) {
+                return totalPercentETF[a] > totalPercentETF[b] ?
+                    -1 :
+                    ( totalPercentETF[a] < totalPercentETF[b] ? 1 : 0)
+            }).map(label => label.length > 20 ? label.slice(0, 20) + '...' : label)
+        )
+        setETFSubSectorPercents(
+            Object.values(totalPercentETF)
+            .sort(function(a, b) {
+                return a > b ? -1 : ( a < b ? 1 : 0)
+            })
+        )
+    }
+
     useEffect(() => {
 
         async function getData() {
@@ -152,8 +211,10 @@ export default function CompositionDashboard() {
             localStorage.setItem('updated_at', Date.now())
 
             calculatePercentPerSector(data)
-            calculatePercentMissing(data)
-            calculateTotal(data)
+            calculatePercentDiscrepance(data)
+            calculateTotalInvested(data)
+            calculatePercentFII(data)
+            calculatePercentETF(data)
         }
 
         if(!localStorage.getItem('stocks') || (Date.now() - localStorage.getItem('updated_at')) > 1000*60*5) {
@@ -162,8 +223,10 @@ export default function CompositionDashboard() {
             const data = JSON.parse(localStorage.getItem('stocks'))
 
             calculatePercentPerSector(data)
-            calculatePercentMissing(data)
-            calculateTotal(data)
+            calculatePercentDiscrepance(data)
+            calculateTotalInvested(data)
+            calculatePercentFII(data)
+            calculatePercentETF(data)
         }
 
         const interval = setInterval(async () => {
@@ -197,7 +260,7 @@ export default function CompositionDashboard() {
                                     datasets: [{
                                         label: 'Porcentagem Atual',
                                         data: sectorPercents,
-                                        backgroundColor: backgroundColor.filter((color, index) => index % parseInt(backgroundColor.length / sectorLabels.length) === 0)
+                                        backgroundColor: backgroundPieColor.filter((color, index) => index % parseInt(backgroundPieColor.length / sectorLabels.length) === 0)
                                     }]
                                 }}
                                 options = {{
@@ -236,6 +299,82 @@ export default function CompositionDashboard() {
                             <h1>FII</h1>
                             <p>{ Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalFII) }</p>
                         </li>
+                        <li className="colspan-2 rowspan-3">
+                            <Pie
+                                data={{
+                                    labels: FIISubSectorLabels,
+                                    datasets: [{
+                                        label: 'Porcentagem Atual',
+                                        data: FIISubSectorPercents,
+                                        backgroundColor: backgroundPieColor.filter((color, index) => index % parseInt(backgroundPieColor.length / FIISubSectorLabels.length) === 0)
+                                    }]
+                                }}
+                                options = {{
+                                    title: {
+                                        display: true,
+                                        text: 'Porcentagem por Setor de FII',
+                                        fontSize: 22,
+                                        fontFamily: 'Roboto, sans-serif',
+                                        fontColor: '#95a5bb',
+                                        fontStyle: '400',
+                                        padding: 20
+                                    },
+                                    legend: {
+                                        display: true,
+                                        position: 'left'
+                                    },
+                                    tooltips: {
+                                        callbacks: {
+                                            label: (tooltipItem, data) => {
+                                                const value = data.datasets[0].data[tooltipItem.index]
+                                                return `${value.toFixed(2)} %`.replace('.', ',')
+                                            },
+                                            title: (tooltipItem, data) => {
+                                                return data.labels[tooltipItem[0].index]
+                                            }
+                                        }
+                                    }
+                                }}
+                            />
+                        </li>
+                        <li className="colspan-2 rowspan-3">
+                            <Pie
+                                data={{
+                                    labels: ETFSubSectorLabels,
+                                    datasets: [{
+                                        label: 'Porcentagem Atual',
+                                        data: ETFSubSectorPercents,
+                                        backgroundColor: backgroundPieColor.filter((color, index) => index % parseInt(backgroundPieColor.length / ETFSubSectorLabels.length) === 0)
+                                    }]
+                                }}
+                                options = {{
+                                    title: {
+                                        display: true,
+                                        text: 'Porcentagem por Setor de ETF',
+                                        fontSize: 22,
+                                        fontFamily: 'Roboto, sans-serif',
+                                        fontColor: '#95a5bb',
+                                        fontStyle: '400',
+                                        padding: 20
+                                    },
+                                    legend: {
+                                        display: true,
+                                        position: 'left'
+                                    },
+                                    tooltips: {
+                                        callbacks: {
+                                            label: (tooltipItem, data) => {
+                                                const value = data.datasets[0].data[tooltipItem.index]
+                                                return `${value.toFixed(2)} %`.replace('.', ',')
+                                            },
+                                            title: (tooltipItem, data) => {
+                                                return data.labels[tooltipItem[0].index]
+                                            }
+                                        }
+                                    }
+                                }}
+                            />
+                        </li>
                         <li className="colspan-4">
                             <HorizontalBar
                                 data={{
@@ -243,7 +382,7 @@ export default function CompositionDashboard() {
                                     datasets: [{
                                         label: 'Porcentagem Atual',
                                         data: stocksPercents,
-                                        backgroundColor: backgroundColor.filter((color, index) => index % parseInt(backgroundColor.length / stocksLabels.length) === 0)
+                                        backgroundColor: backgroundBarColor.filter((color, index) => index % parseInt(backgroundBarColor.length / stocksLabels.length) === 0)
                                     }]
                                 }}
                                 options = {{
@@ -291,13 +430,89 @@ export default function CompositionDashboard() {
                                     datasets: [{
                                         label: 'Porcentagem Atual',
                                         data: sectorPercents,
-                                        backgroundColor: backgroundColor.filter((color, index) => index % parseInt(backgroundColor.length / sectorLabels.length) === 0)
+                                        backgroundColor: backgroundPieColor.filter((color, index) => index % parseInt(backgroundPieColor.length / sectorLabels.length) === 0)
                                     }]
                                 }}
                                 options = {{
                                     title: {
                                         display: true,
                                         text: 'Porcentagem Atual por Setor',
+                                        fontSize: 22,
+                                        fontFamily: 'Roboto, sans-serif',
+                                        fontColor: '#95a5bb',
+                                        fontStyle: '400',
+                                        padding: 20
+                                    },
+                                    legend: {
+                                        display: false
+                                    },
+                                    tooltips: {
+                                        callbacks: {
+                                            label: (tooltipItem, data) => {
+                                                const value = data.datasets[0].data[tooltipItem.index]
+                                                return `${value.toFixed(2)} %`.replace('.', ',')
+                                            },
+                                            title: (tooltipItem, data) => {
+                                                return data.labels[tooltipItem[0].index]
+                                            }
+                                        }
+                                    }
+                                }}
+                            />
+                        </li>
+                        <li className="colspan-2 rowspan-3">
+                            <Pie
+                                width={170}
+                                data={{
+                                    labels: FIISubSectorLabels,
+                                    datasets: [{
+                                        label: 'Porcentagem Atual',
+                                        data: FIISubSectorPercents,
+                                        backgroundColor: backgroundPieColor.filter((color, index) => index % parseInt(backgroundPieColor.length / FIISubSectorLabels.length) === 0)
+                                    }]
+                                }}
+                                options = {{
+                                    title: {
+                                        display: true,
+                                        text: 'Porcentagem por Setor de FII',
+                                        fontSize: 22,
+                                        fontFamily: 'Roboto, sans-serif',
+                                        fontColor: '#95a5bb',
+                                        fontStyle: '400',
+                                        padding: 20
+                                    },
+                                    legend: {
+                                        display: false
+                                    },
+                                    tooltips: {
+                                        callbacks: {
+                                            label: (tooltipItem, data) => {
+                                                const value = data.datasets[0].data[tooltipItem.index]
+                                                return `${value.toFixed(2)} %`.replace('.', ',')
+                                            },
+                                            title: (tooltipItem, data) => {
+                                                return data.labels[tooltipItem[0].index]
+                                            }
+                                        }
+                                    }
+                                }}
+                            />
+                        </li>
+                        <li className="colspan-2 rowspan-3">
+                            <Pie
+                                width={170}
+                                data={{
+                                    labels: ETFSubSectorLabels,
+                                    datasets: [{
+                                        label: 'Porcentagem Atual',
+                                        data: ETFSubSectorPercents,
+                                        backgroundColor: backgroundPieColor.filter((color, index) => index % parseInt(backgroundPieColor.length / ETFSubSectorLabels.length) === 0)
+                                    }]
+                                }}
+                                options = {{
+                                    title: {
+                                        display: true,
+                                        text: 'Porcentagem por Setor de ETF',
                                         fontSize: 22,
                                         fontFamily: 'Roboto, sans-serif',
                                         fontColor: '#95a5bb',
@@ -329,7 +544,7 @@ export default function CompositionDashboard() {
                                     datasets: [{
                                         label: 'Porcentagem Atual',
                                         data: stocksPercents,
-                                        backgroundColor: backgroundColor.filter((color, index) => index % parseInt(backgroundColor.length / stocksLabels.length) === 0)
+                                        backgroundColor: backgroundBarColor.filter((color, index) => index % parseInt(backgroundBarColor.length / stocksLabels.length) === 0)
                                     }]
                                 }}
                                 options = {{
